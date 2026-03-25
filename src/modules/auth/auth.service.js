@@ -1,6 +1,7 @@
 import User from "../../db/models/user.model.js";
-import { sendEmail, compare, encrypt, genrateTokens, hash, verifyToken } from "../../utils/index.js";
+import { sendEmail, compare, encrypt, genrateTokens, verifyToken } from "../../utils/index.js";
 import { massages } from "../../utils/messages/index.js";
+import CryptoJS from "crypto-js";
 
 
 export const register = async (req, res, next) => {
@@ -13,7 +14,7 @@ export const register = async (req, res, next) => {
 
   const newUser = await User.create({
     email,
-    password: hash({ password }),
+    password,
     userName,
     phoneNumber: encrypt({ data: phoneNumber }),
     gender,
@@ -33,14 +34,11 @@ export const register = async (req, res, next) => {
     message: `click on this link to verify your email `,
     html: `<a href="${link}">click here to verify your email</a>`
   })
-  if (!isSent) {
-    return next(new Error("email did not sent", { cause: 500 }));
-  }
 
   const sendData = {
     userName: newUser.userName,
     email: newUser.email,
-    phoneNumber: CryptoJS.AES.decrypt({ data: newUser.phoneNumber }),
+    phoneNumber: CryptoJS.AES.decrypt(newUser.phoneNumber, process.env.CryptoJSKey).toString(CryptoJS.enc.Utf8),
     gender: newUser.gender,
   }
 

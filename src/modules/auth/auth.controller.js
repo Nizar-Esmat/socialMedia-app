@@ -11,7 +11,9 @@ router.post("/register",
     asyncHandler(authService.register))
 
 
-router.post("/login", isValid(authValidation.loginSchema)  , asyncHandler(authService.login));
+router.post("/login", 
+    isValid(authValidation.loginSchema)  , 
+    asyncHandler(authService.login));
 
 router.get("/verify/:token", asyncHandler(authService.verify));
 export default router;

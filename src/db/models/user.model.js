@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { hash } from "../../utils/index.js";
 
 export const gender = {
   FEMALE: "female",
@@ -62,6 +63,12 @@ const userSchema = new Schema(
     versionKey: false,
   },
 );
+
+userSchema.pre("save", function () {
+  if (this.isModified("password")) {
+    this.password = hash({ password: this.password });
+  }
+});
 
 const User = model("User", userSchema);
 export default User;

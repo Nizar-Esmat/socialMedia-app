@@ -29,6 +29,6 @@ export const isAuthentecate = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        return res.status(500).json({ status: false, message: massages.auth.serverError });
+        return next(new Error(error.message, { cause: 500 }));
     }
 }
