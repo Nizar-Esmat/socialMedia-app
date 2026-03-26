@@ -1,8 +1,7 @@
+import OTP from "../../db/models/otp.model.js";
 import User from "../../db/models/user.model.js";
-import { sendEmail, compare, encrypt, genrateTokens, verifyToken } from "../../utils/index.js";
+import { emailEmitter, compare, encrypt, genrateTokens, verifyToken, Decrypt, hash } from "../../utils/index.js";
 import { massages } from "../../utils/messages/index.js";
-import CryptoJS from "crypto-js";
-
 
 export const register = async (req, res, next) => {
   const { email, password, userName, phoneNumber, gender } = req.body;
@@ -12,39 +11,46 @@ export const register = async (req, res, next) => {
     return next(new Error(massages.user.alreadyExists, { cause: 409 }));
   }
 
+  const hashedPassword = hash({ password });
+
   const newUser = await User.create({
     email,
-    password,
+    password: hashedPassword,
+    ConfirmPassword: hashedPassword,
     userName,
     phoneNumber: encrypt({ data: phoneNumber }),
     gender,
   });
-  const verifyToken = genrateTokens({
-    payload: {
-      userId: newUser.id
-    },
-    options: {
-      expiresIn: "1d"
-    }
-  })
-  const link = `http://localhost:3000/auth/verify/${verifyToken}`;
-  const isSent = await sendEmail({
+
+  emailEmitter.emit("sendEmail", {
     email,
     subject: "verify your email",
-    message: `click on this link to verify your email `,
-    html: `<a href="${link}">click here to verify your email</a>`
-  })
+    type: "confirmEmail"
+  });
 
-  const sendData = {
-    userName: newUser.userName,
-    email: newUser.email,
-    phoneNumber: CryptoJS.AES.decrypt(newUser.phoneNumber, process.env.CryptoJSKey).toString(CryptoJS.enc.Utf8),
-    gender: newUser.gender,
-  }
-
-  return res.status(201).json({ status: true, message: massages.user.created, data: sendData });
+  return res.status(201).json({ status: true, message: massages.user.created, data: newUser });
 }
 
+export const confirmEmail = async (req, res, next) => {
+  const { email, otp } = req.body;
+  const user = await User.findOne({ email, isConfirmed: false });
+  if (!user) {
+    return next(new Error(massages.user.notFound, { cause: 404 }));
+  }
+  const oldOTP = await OTP.findOne({ email, type: "confirmEmail" });
+  if (!oldOTP) {
+    return next(new Error(massages.user.otpNotFound, { cause: 404 }));
+  }
+
+  const isMatch = compare({ password: otp, hash: oldOTP.otp });
+  if (!isMatch) {
+    return next(new Error(massages.user.otpInvalid, { cause: 400 }));
+  }
+
+  user.isConfirmed = true;
+  await user.save();
+  return res.status(200).json({ status: true, message: massages.user.emailConfirmed, data: user });
+}
 
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
@@ -58,17 +64,30 @@ export const login = async (req, res, next) => {
   }
 
   if (user.isConfirmed === false) {
-    return next(new Error(massages.user.notFound + "verified email", { cause: 401 }));
+    return next(new Error(massages.user.emailNotConfirmed, { cause: 403 }));
   }
 
-  const token = genrateTokens({
+  const accessToken = genrateTokens({
     payload: {
-      userId: user.id
+      userId: user.id,
+      userEmail: user.email
+    },
+    options: {
+      expiresIn: "1h"
+    }
+  })
+
+  const refreshToken = genrateTokens({
+    payload: {
+      userId: user.id,
+      userEmail: user.email
     },
     options: {
       expiresIn: "1d"
     }
   })
+
+
 
   if (user.isDeleted) {
     await User.findByIdAndUpdate(user.id, { isDeleted: false });
@@ -77,28 +96,71 @@ export const login = async (req, res, next) => {
   const sendData = {
     userName: user.userName,
     email: user.email,
-    phoneNumber: CryptoJS.AES.decrypt(user.phoneNumber, process.env.CryptoJSKey).toString(CryptoJS.enc.Utf8),
-    gender: user.gender,
+    phoneNumber: Decrypt({ data: user.phoneNumber }),
     id: user.id
   }
   return res
     .status(200)
-    .json({ status: true, message: massages.user.fetch, token, data: sendData });
+    .json({
+      status: true,
+      message: massages.user.loggedIn,
+      access_tokaen: accessToken,
+      refresh_token: refreshToken,
+      data: sendData
+    });
 }
 
-
-
-export const verify = async (req, res, next) => {
-  const { token } = req.params;
-  const { userId, error } = verifyToken({ token });
+export const refreshToken = async (req, res, next) => {
+  const { refreshToken } = req.body;
+  const { userId, userEmail, error } = verifyToken({ token: refreshToken });
   if (error) {
     return next(error);
   }
-  const user = await User.findById(userId);
-  if (!user) {
-    return next(new Error(massages.user.notFound + userId, { cause: 404 }));
+
+  const newToken = genrateTokens({
+    payload: {
+      userId,
+      userEmail
+    },
+    options: {
+      expiresIn: "1h"
+    }
+  })
+
+  return res.status(200).json({ status: true, message: massages.user.tokenRefreshed, access_tokaen: newToken });
+}
+
+export const forgetPassword = async (req , res ,next) =>{
+  const {email} = req.body;
+  const user = await User.findOne({email, isDeleted: false});
+  if(!user){
+    return next(new Error(massages.user.notFound + email, { cause: 404 }));
   }
-  user.isConfirmed = true;
+  emailEmitter.emit("sendEmail", {
+    email,
+    subject: "reset your password",
+    type: "forgetPassword"
+  });
+  return res.status(200).json({ status: true, message: massages.user.otpSent });
+}
+
+export const resetPassword = async (req, res, next) => {
+  const { email, otp, password } = req.body;
+  const user = await User.findOne({ email, isDeleted: false });
+  if (!user) {
+    return next(new Error(massages.user.notFound + email, { cause: 404 }));
+  }
+  const oldOTP = await OTP.findOne({ email, type: "forgetPassword" });
+  if (!oldOTP) {
+    return next(new Error(massages.user.otpNotFound, { cause: 404 }));
+  }
+
+  const isMatch = compare({ password: otp, hash: oldOTP.otp });
+  if (!isMatch) {
+    return next(new Error(massages.user.otpInvalid, { cause: 400 }));
+  }
+
+  user.password = hash({ password });
   await user.save();
-  return res.status(200).json({ status: true, message: massages.user.updated });
+  return res.status(200).json({ status: true, message: massages.user.passwordReset });
 }

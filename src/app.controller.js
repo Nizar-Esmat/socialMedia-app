@@ -16,7 +16,7 @@ const bootStrap = async (app, express) => {
 
 
   app.use(notFOund);
-  app.use(globalError)
+  app.use(globalError);
 };
 
 export default bootStrap;

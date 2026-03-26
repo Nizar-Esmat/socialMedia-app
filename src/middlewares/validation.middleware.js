@@ -5,6 +5,7 @@ export const isValid = (schema) => {
     return asyncHandler(async (req, res, next) => {
         const data = {...req.body, ...req.params, ...req.query}
         const { error } = schema.validate(data, { abortEarly: false });
+        console.log(error);
         if (error) {
             return next(new Error(error.message, { cause: 400 }));
         }

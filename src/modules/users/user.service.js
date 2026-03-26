@@ -1,10 +1,10 @@
 import CryptoJS from "crypto-js";
 import User from "../../db/models/user.model.js";
 import { massages } from "../../utils/messages/index.js";
-import { encrypt } from "../../utils/index.js";
+import { Decrypt, encrypt } from "../../utils/index.js";
 export const getMe = async (req, res, next) => {
     let { user } = req;
-    user.phoneNumber = CryptoJS.AES.decrypt(user.phoneNumber, process.env.CryptoJSKey).toString(CryptoJS.enc.Utf8);
+    user.phoneNumber = Decrypt({ data: user.phoneNumber });
     return res.status(200).json({ status: true, message: massages.user.fetch, data: user });
 };
 

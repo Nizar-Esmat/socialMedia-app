@@ -2,18 +2,24 @@ import { Router } from "express";
 import * as authService from "./auth.service.js";
 import asyncHandler from "../../utils/error/async-handler.js";
 import { isValid } from "../../middlewares/validation.middleware.js";
-import * as authValidation from "./auth.validation.js";
+import * as av from "./auth.validation.js";
 
 const router = Router();
 
 router.post("/register",
-    isValid(authValidation.registerSchema),
+    isValid(av.registerSchema),
     asyncHandler(authService.register))
 
+router.post("/confirm", isValid(av.confirmEmailSchema) , asyncHandler(authService.confirmEmail));
 
 router.post("/login", 
-    isValid(authValidation.loginSchema)  , 
+    isValid(av.loginSchema)  , 
     asyncHandler(authService.login));
 
-router.get("/verify/:token", asyncHandler(authService.verify));
+router.get("/refresh_token", isValid(av.refreshTokenSchema) , asyncHandler(authService.refreshToken));
+
+router.patch("/forget_password", isValid(av.forgetPasswordSchema) , asyncHandler(authService.forgetPassword));
+
+router.patch("/reset_password", isValid(av.resetPasswordSchema) , asyncHandler(authService.resetPassword));
+
 export default router;

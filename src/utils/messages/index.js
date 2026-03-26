@@ -1,7 +1,7 @@
 const genrateMassages = (entity) => {
     return {
-        notFound: ` ${entity} not found with `,
-        alreadyExists: `${entity} already exists with `,
+        notFound: `${entity} not found`,
+        alreadyExists: `${entity} already exists`,
         created: `${entity} created successfully`,
         deleted: `${entity} deleted successfully`,
         updated: `${entity} updated successfully`,
@@ -11,12 +11,24 @@ const genrateMassages = (entity) => {
 
 
 export const massages = {
-    user: { ...genrateMassages("user"), invalidCredentials: "invalid credentials" },
+    user: {
+        ...genrateMassages("user"),
+        invalidCredentials: "invalid email or password",
+        emailNotConfirmed: "please confirm your email before logging in",
+        emailConfirmed: "email confirmed successfully",
+        loggedIn: "logged in successfully",
+        loggedOut: "logged out successfully",
+        otpSent: "OTP sent to your email",
+        otpInvalid: "invalid or expired OTP",
+        otpNotFound: "no OTP found for this email, please request a new one",
+        tokenRefreshed: "token refreshed successfully",
+        passwordReset: "password reset successfully",
+    },
     message: genrateMassages("message"),
     auth: {
         tokenRequired: "token is required",
         invalidBearer: "invalid bearer token",
-        unauthorized: "unauthorized",
+        unauthorized: "unauthorized access",
         serverError: "authentication error"
     }
 }

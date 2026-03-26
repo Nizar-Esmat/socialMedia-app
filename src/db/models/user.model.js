@@ -11,52 +11,18 @@ export const role = {
 }
 const userSchema = new Schema(
   {
-    email: {
-      type: String,
-      required: [true, "email is required"],
-      unique: [true, "email must be unique"],
-    },
-    password: {
-      type: String,
-      required: [true, "password is required"],
-    },
-    userName: {
-      type: String,
-      required: [true, "userName is required"],
-      unique: [true, "userName must be unique"],
-    },
-    gender: {
-      type: String,
-      required: [true, "gender is required"],
-      enum: {
-        values: Object.values(gender),
-        message: "gender must be female or male",
-      },
-    },
-    phoneNumber: {
-      type: String,
-      required: [true, "phoneNumber is required"],
-      unique: [true, "phoneNumber must be unique"],
-    },
-    role: {
-      type: String,
-      enum: {
-        values: Object.values(role),
-        message: "role must be user or admin",
-      },
-      default: role.USER,
-    },
-    isConfirmed: {
-      type: Boolean,
-      default: false,
-    },
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
-    deletedAt: {
-      type: Date,
-    },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    ConfirmPassword: { type: String, required: true },
+    userName: { type: String, required: true },
+    phoneNumber: { type: String, required: true },
+    gender: { type: String, enum: Object.values(gender), default: gender.FEMALE },
+    image: { type: String },
+    coverImage: { type: String },
+    role: { type: String, enum: Object.values(role), default: role.USER },
+    isConfirmed: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
+    changePasswordAt: {type: Date},
   },
   {
     timestamps: true,
@@ -64,11 +30,6 @@ const userSchema = new Schema(
   },
 );
 
-userSchema.pre("save", function () {
-  if (this.isModified("password")) {
-    this.password = hash({ password: this.password });
-  }
-});
 
 const User = model("User", userSchema);
 export default User;
