@@ -164,3 +164,8 @@ export const resetPassword = async (req, res, next) => {
   await user.save();
   return res.status(200).json({ status: true, message: massages.user.passwordReset });
 }
+
+export const uploadFile = (req, res ,next)=>{
+  console.log(req.file);
+  return res.status(200).json({ status: true, data: req.file });
+}

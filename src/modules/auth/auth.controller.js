@@ -3,6 +3,7 @@ import * as authService from "./auth.service.js";
 import asyncHandler from "../../utils/error/async-handler.js";
 import { isValid } from "../../middlewares/validation.middleware.js";
 import * as av from "./auth.validation.js";
+import { filetype, uploadFile } from "../../middlewares/multer.middleware.js";
 
 const router = Router();
 
@@ -21,5 +22,7 @@ router.get("/refresh_token", isValid(av.refreshTokenSchema) , asyncHandler(authS
 router.patch("/forget_password", isValid(av.forgetPasswordSchema) , asyncHandler(authService.forgetPassword));
 
 router.patch("/reset_password", isValid(av.resetPasswordSchema) , asyncHandler(authService.resetPassword));
+
+router.post('/uploadFIle' , uploadFile([...filetype.images], "images").single("profile")  ,asyncHandler(authService.uploadFile));
 
 export default router;
