@@ -3,14 +3,14 @@ import User from "../db/models/user.model.js";
 import { massages } from "../utils/messages/index.js";
 export const isAuthentecate = async (req, res, next) => {
     try {
-        const { autherization } = req.headers;
-        if (!autherization) {
+        const { authorization } = req.headers;
+        if (!authorization) {
             return next(new Error(massages.auth.tokenRequired, { cause: 401 }));
         }
-        if (!autherization.startsWith("Bearer ")) {
+        if (!authorization.startsWith("Bearer ")) {
             return next(new Error(massages.auth.invalidBearer, { cause: 401 }));
         }
-        const [bearer, token] = autherization.split(" ");
+        const [bearer, token] = authorization.split(" ");
         if (!token) {
             return next(new Error(massages.auth.unauthorized, { cause: 401 }));
         }

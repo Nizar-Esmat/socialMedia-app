@@ -8,10 +8,10 @@ export const filetype = {
     videos: ["video/mp4", "video/webm", "video/ogg"],
     pdf: ["application/pdf"]
 }
-export const uploadFile = (customFalidation = [], custemFolder ="genral") => {
+export const uploadFileLocall = (customFalidation = [], custemFolder = "genral") => {
     const fullPath = `public/${custemFolder}`
     if (!fs.existsSync(fullPath)) {
-        fs.mkdirSync(fullPath , { recursive: true }); 
+        fs.mkdirSync(fullPath, { recursive: true });
     }
     const storage = multer.diskStorage({
         destination: function (req, file, cb) {
@@ -25,6 +25,23 @@ export const uploadFile = (customFalidation = [], custemFolder ="genral") => {
             }) + '-' + file.fieldname + ext);
         }
     })
+
+    const fileFilter = (req, file, cb) => {
+        if (customFalidation.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type, only JPEG and PNG are allowed!'), false);
+        }
+    }
+
+    const upload = multer({ storage, fileFilter });
+    return upload;
+}
+
+
+export const uploadFileHost = (customFalidation = [],) => {
+
+    const storage = multer.diskStorage({})
 
     const fileFilter = (req, file, cb) => {
         if (customFalidation.includes(file.mimetype)) {

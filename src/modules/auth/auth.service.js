@@ -1,10 +1,12 @@
 import OTP from "../../db/models/otp.model.js";
 import User from "../../db/models/user.model.js";
+import cloudinary from "../../utils/cloudinary/index.js";
 import { emailEmitter, compare, encrypt, genrateTokens, verifyToken, Decrypt, hash } from "../../utils/index.js";
 import { massages } from "../../utils/messages/index.js";
 
 export const register = async (req, res, next) => {
   const { email, password, userName, phoneNumber, gender } = req.body;
+
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
@@ -13,6 +15,32 @@ export const register = async (req, res, next) => {
 
   const hashedPassword = hash({ password });
 
+  if (!req.files?.profile?.[0]) {
+    return next(new Error(massages.user.imageRequired, { cause: 400 }));
+  }
+
+  const uploadedProfile = await cloudinary.uploader.upload(req.files.profile[0].path, {
+    folder: "socialMedia/profile"
+  });
+
+  const uploadedCoverImages = [];
+  if (req.files?.coverImages?.length) {
+    for (const file of req.files.coverImages) {
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: "socialMedia/coverImages"
+      });
+      uploadedCoverImages.push({ secure_url: result.secure_url, public_id: result.public_id });
+    }
+  }
+  let uploadedVideo = null;
+  if (req.files?.video?.[0]) {
+    const result = await cloudinary.uploader.upload(req.files.video[0].path, {
+      folder: "socialMedia/videos",
+      resource_type: "video"
+    });
+    uploadedVideo = { secure_url: result.secure_url, public_id: result.public_id };
+  }
+
   const newUser = await User.create({
     email,
     password: hashedPassword,
@@ -20,6 +48,9 @@ export const register = async (req, res, next) => {
     userName,
     phoneNumber: encrypt({ data: phoneNumber }),
     gender,
+    image: { secure_url: uploadedProfile.secure_url, public_id: uploadedProfile.public_id },
+    coverImages: uploadedCoverImages,
+    video: uploadedVideo,
   });
 
   emailEmitter.emit("sendEmail", {
@@ -104,8 +135,8 @@ export const login = async (req, res, next) => {
     .json({
       status: true,
       message: massages.user.loggedIn,
-      access_tokaen: accessToken,
-      refresh_token: refreshToken,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
       data: sendData
     });
 }
@@ -127,7 +158,7 @@ export const refreshToken = async (req, res, next) => {
     }
   })
 
-  return res.status(200).json({ status: true, message: massages.user.tokenRefreshed, access_tokaen: newToken });
+  return res.status(200).json({ status: true, message: massages.user.tokenRefreshed, accessToken: newToken });
 }
 
 export const forgetPassword = async (req , res ,next) =>{
@@ -165,7 +196,48 @@ export const resetPassword = async (req, res, next) => {
   return res.status(200).json({ status: true, message: massages.user.passwordReset });
 }
 
-export const uploadFile = (req, res ,next)=>{
-  console.log(req.file);
-  return res.status(200).json({ status: true, data: req.file });
+export const updateProfile = async(req ,res , next) =>{
+
+  console.log(req.user);
+  const {id} = req.user
+  if(req.body.phoneNumber){
+    req.body.phoneNumber = encrypt({ data: req.body.phoneNumber });
+  }
+
+
+  if(req.files?.profile?.[0]){
+    if(req.user.image?.public_id){
+      await cloudinary.uploader.destroy(req.user.image.public_id);
+    }
+    const uploadedProfile = await cloudinary.uploader.upload(req.files.profile[0].path, {
+      folder: "socialMedia/profile"
+    });
+    req.body.image = { secure_url: uploadedProfile.secure_url, public_id: uploadedProfile.public_id }
+  }
+  
+  if (req.files?.coverImages?.length) {
+    const uploadedCoverImages = [];
+    for (const file of req.files.coverImages) {
+      if(file.public_id){
+        await cloudinary.uploader.destroy(file.public_id);
+      }
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: "socialMedia/coverImages"
+      });
+      uploadedCoverImages.push({ secure_url: result.secure_url, public_id: result.public_id });
+    }
+    req.body.coverImages = uploadedCoverImages;
+  }
+
+  if(req.files?.video?.[0]){
+    if(req.user.video?.public_id){
+      await cloudinary.uploader.destroy(req.user.video.public_id, { resource_type: "video" });
+    }
+    const uploadedVideo = await cloudinary.uploader.upload(req.files.video[0].path, {
+      folder: "socialMedia/video"
+    });
+    req.body.video = { secure_url: uploadedVideo.secure_url, public_id: uploadedVideo.public_id }
+  }
+  const user = await User.findByIdAndUpdate(id , req.body , {new: true});
+  return res.status(200).json({ status: true, message: massages.user.updated, data: user });
 }

@@ -3,7 +3,10 @@ import authController from "./modules/auth/auth.controller.js";
 import userController from "./modules/users/user.controller.js";
 import { globalError } from "./utils/error/global-error.js";
 import { notFOund } from "./utils/error/not-found.js";
+import path from "path";
 const bootStrap = async (app, express) => {
+
+  app.use(express.static(path.resolve("public")));
   app.use(express.json());
 
   await dbConnect();

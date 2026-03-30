@@ -17,15 +17,27 @@ const userSchema = new Schema(
     userName: { type: String, required: true },
     phoneNumber: { type: String, required: true },
     gender: { type: String, enum: Object.values(gender), default: gender.FEMALE },
-    image: { type: String },
-    coverImage: { type: String },
+    image: {
+      secure_url: { type: String },
+      public_id: { type: String },
+    },
+    coverImages: [
+      {
+        secure_url: { type: String },
+        public_id: { type: String },
+      }
+    ],
+    video: {
+      secure_url: { type: String },
+      public_id: { type: String },
+    },
     role: { type: String, enum: Object.values(role), default: role.USER },
     isConfirmed: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
-    changePasswordAt: {type: Date},
+    changePasswordAt: { type: Date },
   },
-  {
-    timestamps: true,
+{
+  timestamps: true,
     versionKey: false,
   },
 );

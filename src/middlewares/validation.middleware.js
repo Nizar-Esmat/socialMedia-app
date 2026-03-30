@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 
 export const isValid = (schema) => {
     return asyncHandler(async (req, res, next) => {
-        const data = {...req.body, ...req.params, ...req.query}
+        const data = {...req.body, ...req.params, ...req.query, ...req.files}
         const { error } = schema.validate(data, { abortEarly: false });
         console.log(error);
         if (error) {
