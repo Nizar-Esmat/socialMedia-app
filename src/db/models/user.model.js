@@ -27,17 +27,20 @@ const userSchema = new Schema(
         public_id: { type: String },
       }
     ],
-    video: {
-      secure_url: { type: String },
-      public_id: { type: String },
-    },
+
     role: { type: String, enum: Object.values(role), default: role.USER },
     isConfirmed: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
     changePasswordAt: { type: Date },
+
+    viwers: [{
+      type: Schema.Types.ObjectId,
+      ref: "User"
+      , time: [Date]
+    }],
   },
-{
-  timestamps: true,
+  {
+    timestamps: true,
     versionKey: false,
   },
 );

@@ -37,3 +37,31 @@ export const freezeAccount = async (req, res, next) => {
     const opreation = await User.findByIdAndUpdate(id, { isDeleted: true, deletedAt: Date.now() });
     return res.status(200).json({ status: true, message: massages.user.deleted, data: opreation });
 };
+export const shareProfile = async (req, res, next) => {
+    const { id } = req.params;
+
+    const user = await User.findById({ _id: id, isDeleted: false});
+
+    if (!user) {
+        return next(new Error(massages.user.notFound + id, { cause: 404 }));
+    }
+
+    if(user.id == req.user.id){
+        return res.status(200).json({ status: true, message: massages.user.fetch, data: user });
+    }
+
+    const userExist = user.viwers.find((viewer) => viewer._id.toString() === req.user.id.toString());
+    
+    if (userExist) {
+        userExist.time.push(Date.now());
+        if(userExist.time.length > 5){
+            userExist.time() = userExist.time.slice(-5);
+        }
+    } else {
+        user.viwers.push({ _id: req.user.id, time: [Date.now()] });
+    }
+
+    await user.save();
+
+    return res.status(200).json({ status: true, message: massages.user.fetch, data: user });
+}

@@ -20,4 +20,9 @@ router.put("/update-user",
     isValid(uv.updateUserSchema),
     asyncHandler(userService.updateUser));
 
+
+router.get("/share-profile",
+        isAuthentecate,
+        asyncHandler(userService.shareProfile)
+)
 export default router;
