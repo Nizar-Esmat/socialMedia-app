@@ -23,6 +23,9 @@ export const massages = {
         otpNotFound: "no OTP found for this email, please request a new one",
         tokenRefreshed: "token refreshed successfully",
         passwordReset: "password reset successfully",
+        emailExist: "email already in use",
+        emailSame: "new email must be different from current email",
+        emailUpdated: "email updated successfully",
     },
     message: genrateMassages("message"),
     auth: {

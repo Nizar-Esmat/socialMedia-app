@@ -25,4 +25,15 @@ router.get("/share-profile",
         isAuthentecate,
         asyncHandler(userService.shareProfile)
 )
+
+router.patch("/update-email",
+    isAuthentecate,
+    isValid(uv.updateEmailSchema),
+    asyncHandler(userService.updateEmail));
+
+router.patch("/confirm-update-email",
+    isAuthentecate,
+    isValid(uv.confirmUpdateEmailSchema),
+    asyncHandler(userService.confirmUpdateEmail));
+
 export default router;

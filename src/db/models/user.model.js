@@ -32,6 +32,7 @@ const userSchema = new Schema(
     isConfirmed: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
     changePasswordAt: { type: Date },
+    pendingEmail: { type: String },
 
     viwers: [{
       type: Schema.Types.ObjectId,
