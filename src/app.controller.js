@@ -1,6 +1,7 @@
 import dbConnect from "./db/connections.js";
 import authController from "./modules/auth/auth.controller.js";
 import userController from "./modules/users/user.controller.js";
+import postController from "./modules/posts/posts.controller.js";
 import { globalError } from "./utils/error/global-error.js";
 import { notFOund } from "./utils/error/not-found.js";
 import path from "path";
@@ -15,6 +16,7 @@ const bootStrap = async (app, express) => {
   });
   app.use("/auth", authController);
   app.use("/user", userController);
+  app.use("/post", postController);
 
 
 

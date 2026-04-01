@@ -1,7 +1,7 @@
 import Joi from "joi";
 import { gender as genderType } from "../../db/models/user.model.js";
 
-const fileObject = Joi.object({
+export const fileObject = Joi.object({
     fieldname: Joi.string().required(),
     originalname: Joi.string().required(),
     encoding: Joi.string().required(),
