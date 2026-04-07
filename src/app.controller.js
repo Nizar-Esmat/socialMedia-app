@@ -19,7 +19,6 @@ const bootStrap = async (app, express) => {
   app.use("/post", postController);
 
 
-
   app.use(notFOund);
   app.use(globalError);
 };

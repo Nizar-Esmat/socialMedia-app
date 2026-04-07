@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const postSchema = new Schema(
+const commentSchema = new Schema(
     {
         content: { type: String },
         images: [
@@ -9,15 +9,11 @@ const postSchema = new Schema(
                 public_id: { type: String },
             },
         ],
-        video: {
-            secure_url: { type: String },
-            public_id: { type: String },
-        },
+        likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        postId: { type: Schema.Types.ObjectId, ref: "Post", required: true },
         createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
         isDeleted: { type: Boolean, default: false },
         deletedBy: { type: Schema.Types.ObjectId, ref: "User" },
-        likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
-        comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
     },
     {
         timestamps: true,
@@ -25,5 +21,5 @@ const postSchema = new Schema(
     }
 );
 
-const Post = model("Post", postSchema);
-export default Post;
+const Comment = model("Comment", commentSchema);
+export default Comment;
