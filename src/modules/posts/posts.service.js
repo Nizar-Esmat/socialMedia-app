@@ -133,16 +133,36 @@ export const likePost = async (req, res, next) => {
 };
 
 export const getPosts = async (req, res, next) => {
-    const posts = await Post.find({ isDeleted: false })
-        .sort({ createdAt: -1 })
-        .populate("createdBy", "username")
-        .populate("likes", "username")
-        .populate({
-            path: "comments",
-            populate: { path: "createdBy", select: "username" }
-        });
+    const { skip, limit, page } = pagination(req.query);
 
-    return res.status(200).json({ status: true, message: massages.message.success, data: posts });
+    const [posts, total] = await Promise.all([
+        Post.find({ isDeleted: false })
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 })
+            .populate("createdBy", "username")
+            .populate("likes", "username")
+            .populate({
+                path: "comments",
+                populate: [
+                    { path: "createdBy", select: "username" },
+                    { path: "replies" },
+                ],
+            }),
+        Post.countDocuments({ isDeleted: false }),
+    ]);
+
+    return res.status(200).json({
+        status: true,
+        message: massages.message.success,
+        data: posts,
+        pagination: {
+            total,
+            page,
+            limit,
+            pages: Math.ceil(total / limit),
+        },
+    });
 };
 
 export const getPostById = async (req, res, next) => {
@@ -151,8 +171,8 @@ export const getPostById = async (req, res, next) => {
         .populate("createdBy", "username")
         .populate("likes", "username")
         .populate({
-            path: "comments",    
-            populate: { path: "createdBy", select: "username" }
+            path: "comments",
+            populate: { path: "createdBy", select: "username" },
         });
 
     if (!post) {
@@ -160,4 +180,4 @@ export const getPostById = async (req, res, next) => {
     }
 
     return res.status(200).json({ status: true, message: massages.message.success, data: post });
-};  
+};

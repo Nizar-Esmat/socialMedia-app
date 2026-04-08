@@ -2,8 +2,22 @@ import Comment from "../../db/models/index.js";
 import Post from "../../db/models/index.js";
 
 export const createComment = async (req, res, next) => {
-    const { content, postId } = req.body;
+    const { content, refId } = req.body;
     const { id } = req.user;
+    const { onModel } = req.body;
+
+    if (onModel === "post") {
+        const post = await Post.findOne({ _id: refId, isDeleted: false });
+        if (!post) {
+            return next(new Error("Post not found with id: " + refId, { cause: 404 }));
+        }
+    } else {
+        const comment = await Comment.findOne({ _id: refId, isDeleted: false });
+        if (!comment) {
+            return next(new Error("Comment not found with id: " + refId, { cause: 404 }));
+        }
+    }
+
 
 
     const post = await Post.findOne({ _id: postId, isDeleted: false });
@@ -26,6 +40,7 @@ export const createComment = async (req, res, next) => {
 
     const commentData = {
         content,
+        commentId,
         images: uploadedImages,
         postId,
         createdBy: id,
