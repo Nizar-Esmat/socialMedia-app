@@ -19,6 +19,7 @@
     "cloudinary": "^2.9.0",
     "crypto-js": "^4.2.0",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.4",
