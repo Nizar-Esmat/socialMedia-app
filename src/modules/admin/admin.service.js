@@ -1,11 +1,10 @@
-import { promises } from "nodemailer/lib/xoauth2";
-import Post from "../../db/models/post.model";
-import User from "../../db/models/user.model";
+import Post from "../../db/models/post.model.js";
+import User from "../../db/models/user.model.js";
 
 export const getUsers = async (req, res) => {
     const { page, limit } = req.query;
 
-    const data = await promises.all([
+    const data = await Promise.all([
         Post.find().skip((page - 1) * limit).limit(limit),
         User.find().skip((page - 1) * limit).limit(limit)
     ])

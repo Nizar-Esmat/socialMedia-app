@@ -6,14 +6,14 @@ import adminController from "./modules/admin/admin.controller.js";
 import { globalError } from "./utils/error/global-error.js";
 import { notFOund } from "./utils/error/not-found.js";
 import path from "path";
-
+import { createHandler } from 'graphql-http/lib/use/express';
 import rateLimit from "express-rate-limit";
-
+import schema from "./modules/graph.schema.js";
 
 
 const limiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	limit: 100, 
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
   statusCode: 429,
   message: "Too many requests from this IP, please try again after 15 minutes",
 })
@@ -34,6 +34,7 @@ const bootStrap = async (app, express) => {
   app.use("/post", postController);
   app.use("/admin", adminController);
 
+  app.use('/graphql', createHandler({ schema }));
 
   app.use(notFOund);
   app.use(globalError);

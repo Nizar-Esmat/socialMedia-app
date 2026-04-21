@@ -12,3 +12,7 @@ export const updatePostSchema = Joi.object({
     images: Joi.array().items(fileObject).max(5).optional(),
     video: Joi.array().items(fileObject).max(1).optional(),
 }).or("content", "images", "video");
+
+export const likePostSchema = Joi.object({
+    postId: Joi.string().required(),
+});
