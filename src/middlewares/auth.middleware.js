@@ -33,3 +33,31 @@ export const isAuthentecate = async (req, res, next) => {
         return next(new Error(error.message, { cause: 500 }));
     }
 }
+
+export const authenticateGraphQL = async ({authorization }) => {
+
+    if (!authorization) {
+        throw new Error(massages.auth.tokenRequired, { cause: 401 });
+    }
+    if (!authorization.startsWith("Bearer ")) {
+        throw new Error(massages.auth.invalidBearer, { cause: 401 });
+    }
+    const [bearer, token] = authorization.split(" ");
+    if (!token) {
+        throw new Error(massages.auth.unauthorized, { cause: 401 });
+    }
+    const { userId , iat } = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(userId);
+
+    if (!user) {
+        throw new Error(massages.auth.unauthorized, { cause: 401 });
+    }
+    if (user.isDeleted) {
+        throw new Error(massages.auth.unauthorized, { cause: 401 });
+    }
+    if (user.deletedAt && user.deletedAt.getTime() > iat * 1000) {
+        throw new Error(massages.auth.unauthorized, { cause: 401 });
+    }
+
+    return user;
+}
