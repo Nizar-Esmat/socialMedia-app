@@ -9,7 +9,7 @@ import path from "path";
 import { createHandler } from 'graphql-http/lib/use/express';
 import rateLimit from "express-rate-limit";
 import schema from "./modules/graph.schema.js";
-
+import expressPlayground from 'graphql-playground-middleware-express'
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -20,6 +20,7 @@ const limiter = rateLimit({
 
 
 const bootStrap = async (app, express) => {
+
 
   app.use(express.static(path.resolve("public")));
   app.use(express.json());
@@ -35,6 +36,7 @@ const bootStrap = async (app, express) => {
   app.use("/admin", adminController);
 
   app.use('/graphql', createHandler({ schema }));
+  app.get('/playground', expressPlayground.default({ endpoint: '/graphql' }));
 
   app.use(notFOund);
   app.use(globalError);

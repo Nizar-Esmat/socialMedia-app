@@ -33,4 +33,4 @@ export const likePostResolve = async (parent, args, context) => {
     }
     await post.save();
     return res.status(200).json({ status: true, message: massages.message.success, data: post, isLiked: !isLiked });
-}  
+}   
