@@ -39,8 +39,9 @@ export const sendMassage = async (soket) => {
 
         soket.emit("successMessage", { message });
         const destSocketId = userConnectedSockets.get(destId.toString());
+        console.log("destSocketId", destSocketId);
         if (destSocketId) {
-            soket.to(destSocketId).emit("receiveMassage", { message });
-        }
+            soket.to(destSocketId).emit("receiveMessage", { message });
+        }   
     })
 }
