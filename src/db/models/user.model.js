@@ -39,6 +39,11 @@ const userSchema = new Schema(
       ref: "User"
       , time: [Date]
     }],
+
+    friends: [{
+      type: Schema.Types.ObjectId,
+      ref: "User"
+    }],
   },
   {
     timestamps: true,

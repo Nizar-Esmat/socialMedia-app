@@ -4,8 +4,12 @@ import { massages } from "../../utils/messages/index.js";
 import { compare, Decrypt, emailEmitter, encrypt } from "../../utils/index.js";
 export const getMe = async (req, res, next) => {
     let { user } = req;
-    user.phoneNumber = Decrypt({ data: user.phoneNumber });
-    return res.status(200).json({ status: true, message: massages.user.fetch, data: user });
+    const freshUser = await User.findById(user._id).populate([
+        {path : "friends", select: "userName image"}
+    ]);
+    
+    freshUser.phoneNumber = Decrypt({ data: freshUser.phoneNumber });
+    return res.status(200).json({ status: true, message: massages.user.fetch, data: freshUser });
 };
 
 export const updateUser = async (req, res, next) => {
@@ -141,3 +145,33 @@ export const confirmUpdateEmail = async (req, res, next) => {
 
     return res.status(200).json({ status: true, message: massages.user.emailUpdated });
 };
+
+export const addFriend = async (req, res, next) => {
+    const { friendId } = req.body;
+    const { id } = req.user;
+
+    if (friendId === id) {
+        return next(new Error(massages.user.cannotAddYourself, { cause: 400 }));
+    }
+
+    const user = await User.findById(id);
+    const friend = await User.findById(friendId);
+
+    if (!friend || friend.isDeleted) {
+        return next(new Error(massages.user.friendNotFound, { cause: 404 }));
+    }
+
+    if (user.friends.includes(friendId)) {
+        return next(new Error(massages.user.alreadyFriends, { cause: 409 }));
+    }
+
+    user.friends.push(friendId);
+    friend.friends.push(id);
+
+    await Promise.all([
+        friend.save(),
+        user.save(),
+    ]);
+
+    return res.status(200).json({ status: true, message: massages.user.friendAdded });
+}

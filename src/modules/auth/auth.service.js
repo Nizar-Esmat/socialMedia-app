@@ -104,7 +104,7 @@ export const login = async (req, res, next) => {
       userEmail: user.email
     },
     options: {
-      expiresIn: "1h"
+      expiresIn: "6h"
     }
   })
 
@@ -117,6 +117,7 @@ export const login = async (req, res, next) => {
       expiresIn: "1d"
     }
   })
+
 
 
 

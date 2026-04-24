@@ -36,4 +36,15 @@ router.patch("/confirm-update-email",
     isValid(uv.confirmUpdateEmailSchema),
     asyncHandler(userService.confirmUpdateEmail));
 
+
+router.patch("/add-friend",
+    isAuthentecate,
+    isValid(uv.addFriendSchema),
+    asyncHandler(userService.addFriend));
+
+router.patch("/remove-friend",
+    isAuthentecate,
+    isValid(uv.removeFriendSchema),
+    asyncHandler(userService.removeFriend));
+
 export default router;

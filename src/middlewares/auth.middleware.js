@@ -65,7 +65,7 @@ export const authenticateGraphQL = async ({authorization }) => {
 
 export const authenticateSocket = async ({socket}) => {
     try {
-        const { authorization } = socket.handshake.headers;
+        const { authorization } = socket.handshake.auth;
         if (!authorization) {
             return { status: false, massage: massages.auth.tokenRequired, statusCode: 401 };
         }

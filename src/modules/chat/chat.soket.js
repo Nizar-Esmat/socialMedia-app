@@ -17,7 +17,6 @@ export const connectIO = async (server) => {
         console.log("a user connected with id ", socket.id);
         await rigsterAuthSocket(socket);
         await disconnectAuthSocket(socket);
-        console.log(socket.handshake.auth);
     });
 
 }
