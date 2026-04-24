@@ -3,6 +3,7 @@ import authController from "./modules/auth/auth.controller.js";
 import userController from "./modules/users/user.controller.js";
 import postController from "./modules/posts/posts.controller.js";
 import adminController from "./modules/admin/admin.controller.js";
+import ChatController from  "./modules/chat/chat.controller.js";
 import { globalError } from "./utils/error/global-error.js";
 import { notFOund } from "./utils/error/not-found.js";
 import path from "path";
@@ -37,6 +38,7 @@ const bootStrap = async (app, express, io) => {
   app.use("/user", userController);
   app.use("/post", postController);
   app.use("/admin", adminController);
+  app.use("/chat" , ChatController);
 
   app.use('/graphql', createHandler({ schema }));
 
