@@ -3,13 +3,16 @@ import authController from "./modules/auth/auth.controller.js";
 import userController from "./modules/users/user.controller.js";
 import postController from "./modules/posts/posts.controller.js";
 import adminController from "./modules/admin/admin.controller.js";
+import ChatController from  "./modules/chat/chat.controller.js";
 import { globalError } from "./utils/error/global-error.js";
 import { notFOund } from "./utils/error/not-found.js";
 import path from "path";
 import { createHandler } from 'graphql-http/lib/use/express';
 import rateLimit from "express-rate-limit";
 import schema from "./modules/graph.schema.js";
-import expressPlayground from 'graphql-playground-middleware-express'
+import cors from "cors";
+import { authenticateSocket } from "./middlewares/auth.middleware.js";
+
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -19,8 +22,9 @@ const limiter = rateLimit({
 })
 
 
-const bootStrap = async (app, express) => {
+const bootStrap = async (app, express, io) => {
 
+  app.use(cors());
 
   app.use(express.static(path.resolve("public")));
   app.use(express.json());
@@ -34,9 +38,14 @@ const bootStrap = async (app, express) => {
   app.use("/user", userController);
   app.use("/post", postController);
   app.use("/admin", adminController);
+  app.use("/chat" , ChatController);
 
   app.use('/graphql', createHandler({ schema }));
-  app.get('/playground', expressPlayground.default({ endpoint: '/graphql' }));
+
+
+
+
+
 
   app.use(notFOund);
   app.use(globalError);
